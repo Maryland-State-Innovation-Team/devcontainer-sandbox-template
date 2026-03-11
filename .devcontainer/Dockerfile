@@ -46,9 +46,11 @@ ENV NPM_CONFIG_PREFIX=/usr/local/share/npm-global
 ENV PATH=$PATH:/usr/local/share/npm-global/bin
 RUN npm install -g @anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}
 
-# Create the workspace and Claude config directories.
-RUN mkdir -p /workspace /home/node/.claude && \
-    chown -R node:node /workspace /home/node/.claude
+# Create the Claude config directory.
+# The workspace directory is created and mounted automatically by
+# VS Code at /workspaces/<folder-name> — no need to create it here.
+RUN mkdir -p /home/node/.claude && \
+    chown -R node:node /home/node/.claude
 
 # -------------------------------------------------------
 # Firewall setup.
@@ -69,4 +71,5 @@ RUN chmod +x /usr/local/bin/init-firewall.sh && \
 # script above — nothing else.
 # -------------------------------------------------------
 USER node
-WORKDIR /workspace
+# WORKDIR is not set here — VS Code sets it to workspaceFolder
+# from devcontainer.json (/workspaces/<folder-name>).

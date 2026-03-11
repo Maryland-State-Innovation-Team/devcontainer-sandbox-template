@@ -45,12 +45,12 @@
   // This ensures Claude never starts before the network restrictions are in place.
   "waitFor": "postStartCommand",
 
-  // workspaceFolder tells VS Code where the project lives inside the container.
+  // VS Code auto-mounts the opened folder to /workspaces/<folder-name>.
+  // We match workspaceFolder to that path so the terminal, Explorer, and
+  // Claude Code all see the repo files (including CLAUDE.md).
   // We do NOT set workspaceMount explicitly — VS Code handles the mount
   // automatically whether the project is opened from WSL or from Windows.
-  // Setting it manually can cause "error setting up container" failures
-  // when the folder is opened from a Windows path (C:\...) rather than WSL.
-  "workspaceFolder": "/workspace",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
 
   // Pass the user's Anthropic API key from WSL into the container.
   // The key is NEVER stored here — it lives only in the user's ~/.bashrc.
