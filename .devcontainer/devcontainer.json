@@ -1,0 +1,91 @@
+{
+  // -------------------------------------------------------
+  // Claude Code Secure Devcontainer — State of Maryland
+  // Based on Anthropic's official reference devcontainer.
+  // IT-managed. Do not modify without checking with IT.
+  // -------------------------------------------------------
+  "name": "Claude Code Sandbox",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "args": {
+      // Pin a specific Claude Code version here if needed, e.g. "1.2.3"
+      "CLAUDE_CODE_VERSION": "latest"
+    }
+  },
+
+  // NET_ADMIN: required to create and modify iptables rules.
+  // NET_RAW:   required for certain iptables match operations.
+  // Both are needed by init-firewall.sh.
+  "runArgs": [
+    "--cap-add=NET_ADMIN",
+    "--cap-add=NET_RAW",
+    // Override Docker Desktop's DNS proxy (192.168.65.7), which is unreliable
+    // on government networks. Use Google and Cloudflare public DNS instead.
+    // See HISTORY.md Problem #7 for details.
+    "--dns=8.8.8.8",
+    "--dns=1.1.1.1"
+  ],
+
+  // Ports that Claude-built apps may use — they appear automatically
+  // in VS Code's Ports tab when in use, with a link to open them.
+  "forwardPorts": [3000, 5173, 8080, 8000],
+  "portsAttributes": {
+    "3000": { "label": "App (3000)",        "onAutoForward": "notify" },
+    "5173": { "label": "Vite Dev Server",   "onAutoForward": "notify" },
+    "8080": { "label": "API (8080)",         "onAutoForward": "notify" },
+    "8000": { "label": "Alt Server (8000)", "onAutoForward": "notify" }
+  },
+
+  // Run the network firewall every time the container starts.
+  // The script is at a fixed absolute path (/usr/local/bin/) so the
+  // sudoers entry in the Dockerfile can match it exactly — no password prompt.
+  "postStartCommand": "sudo /usr/local/bin/init-firewall.sh",
+
+  // Wait for the firewall to finish before VS Code marks the container ready.
+  // This ensures Claude never starts before the network restrictions are in place.
+  "waitFor": "postStartCommand",
+
+  // workspaceFolder tells VS Code where the project lives inside the container.
+  // We do NOT set workspaceMount explicitly — VS Code handles the mount
+  // automatically whether the project is opened from WSL or from Windows.
+  // Setting it manually can cause "error setting up container" failures
+  // when the folder is opened from a Windows path (C:\...) rather than WSL.
+  "workspaceFolder": "/workspace",
+
+  // Pass the user's Anthropic API key from WSL into the container.
+  // The key is NEVER stored here — it lives only in the user's ~/.bashrc.
+  "remoteEnv": {
+    "ANTHROPIC_API_KEY": "${localEnv:ANTHROPIC_API_KEY}"
+  },
+
+  "containerEnv": {
+    // Increase Node.js memory limit for larger projects.
+    "NODE_OPTIONS": "--max-old-space-size=4096",
+    // Store Claude's config in the named volume (persists across rebuilds).
+    "CLAUDE_CONFIG_DIR": "/home/node/.claude"
+  },
+
+  // The non-root user Claude and VS Code run as inside the container.
+  "remoteUser": "node",
+
+  // Persist Claude's config and command history across container rebuilds.
+  "mounts": [
+    "source=claude-code-config-${devcontainerId},target=/home/node/.claude,type=volume"
+  ],
+
+  // VS Code extensions installed automatically inside the container.
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "anthropic.claude-code",
+        "esbenp.prettier-vscode",
+        "dbaeumer.vscode-eslint",
+        "ms-python.python"
+      ],
+      "settings": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+      }
+    }
+  }
+}

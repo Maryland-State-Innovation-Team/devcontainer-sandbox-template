@@ -1,0 +1,36 @@
+# === SECRETS & CREDENTIALS ===
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+**/secrets/
+
+# === CLAUDE CODE ===
+.claude/
+.claude.json
+# (contains OAuth tokens and session data)
+
+# === OS & EDITOR JUNK ===
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/settings.json
+# (keep .vscode/extensions.json — that's safe to share)
+
+# === NODE (common Claude Code output) ===
+node_modules/
+dist/
+.next/
+.nuxt/
+
+# === PYTHON ===
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# === LOGS ===
+*.log
+logs/
